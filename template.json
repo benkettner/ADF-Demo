@@ -1,0 +1,224 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+
+  "parameters": {
+    "projectShort": {
+      "type": "string",
+      "maxLength": 8,
+      "metadata": {
+        "description": "A short identifier (up to 8 characters) for your project that will be added to your resource names"
+      }
+    },
+    "utcValue": {
+      "type": "string",
+      "defaultValue": "[utcNow('d')]",
+      "metadata": {
+        "description": "The timestamp format that will be used for creating the tags in your RG - leave at default"
+      }
+    },
+    "StorageAccountSasProperties": {
+      "type": "object",
+      "defaultValue": {
+        "signedServices": "b",
+        "signedPermission": "rw",
+        "signedExpiry": "[dateTimeAdd(utcNow('u'), 'P3M')]",
+        "signedResourceTypes": "o"
+      }
+    }
+  },
+  "variables": {
+    "storageAccountName": "[concat('stg', parameters('projectShort'), uniqueString(resourceGroup().id))]",
+    "keyVaultName": "[concat('kv-', parameters('projectShort'), '-', uniqueString(resourceGroup().id))]",
+    "storageSASsecretName": "[concat('sas-', variables('storageAccountName'))]",
+    "storageAccessKeySecretName": "[concat('key-', variables('storageAccountName'))]",
+    "dataFactoryName": "[concat('adf-', parameters('projectShort'), '-', uniqueString(resourceGroup().id))]",
+    "factoryId": "[concat('Microsoft.DataFactory/factories/', 'adf-', parameters('projectShort'), '-', uniqueString(resourceGroup().id))]",
+    "tags": {
+      "createdOn": "[parameters('utcValue')]",
+      "createdBy": "[concat('Automatic deployment for ', parameters('projectShort'))]"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2021-04-01",
+      "name": "[variables('storageAccountName')]",
+      "location": "westeurope",
+      "tags": "[variables('tags')]",
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      },
+      "kind": "StorageV2",
+      "properties": {
+        "isHnsEnabled": true,
+        "networkAcls": {
+          "bypass": "AzureServices",
+          "virtualNetworkRules": [],
+          "ipRules": [],
+          "defaultAction": "Allow"
+        },
+        "supportsHttpsTrafficOnly": true,
+        "encryption": {
+          "services": {
+            "file": {
+              "keyType": "Account",
+              "enabled": true
+            },
+            "blob": {
+              "keyType": "Account",
+              "enabled": true
+            }
+          },
+          "keySource": "Microsoft.Storage"
+        },
+        "accessTier": "Hot"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices",
+      "apiVersion": "2021-04-01",
+      "name": "[concat(variables('storageAccountName'), '/default')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+      ],
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      },
+      "properties": {
+        "cors": {
+          "corsRules": []
+        },
+        "deleteRetentionPolicy": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/queueServices",
+      "apiVersion": "2021-04-01",
+      "name": "[concat(variables('storageAccountName'), '/default')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+      ],
+      "properties": {
+        "cors": {
+          "corsRules": []
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/tableServices",
+      "apiVersion": "2021-04-01",
+      "name": "[concat(variables('storageAccountName'), '/default')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+      ],
+      "properties": {
+        "cors": {
+          "corsRules": []
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2021-04-01",
+      "name": "[concat(variables('storageAccountName'), '/default/sourcedata')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageAccountName'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+      ],
+      "properties": {
+        "publicAccess": "None"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2021-04-01",
+      "name": "[concat(variables('storageAccountName'), '/default/sinkdata')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageAccountName'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+      ],
+      "properties": {
+        "publicAccess": "None"
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults",
+      "apiVersion": "2018-02-14",
+      "name": "[variables('keyVaultName')]",
+      "location": "[resourceGroup().location]",
+      "tags": "[variables('tags')]",
+      "dependsOn": [
+        "[concat('Microsoft.DataFactory/factories/', variables('dataFactoryName'))]"
+      ],
+      "properties": {
+        "enabledForDeployment": true,
+        "enabledForTemplateDeployment": true,
+        "enabledForDiskEncryption": true,
+        "tenantId": "[subscription().tenantId]",
+        "accessPolicies": [
+          {
+            "tenantId": "[subscription().tenantId]",
+            "objectId": "[reference(concat('Microsoft.DataFactory/factories/', variables('dataFactoryName')), '2018-06-01', 'Full').identity.principalId]",
+            "permissions": {
+              "keys": [
+                "get"
+              ],
+              "secrets": [
+                "list",
+                "get",
+                "set"
+              ]
+            }
+          }
+        ],
+        "sku": {
+          "name": "standard",
+          "family": "A"
+        }
+      }
+    },
+    {
+      "apiVersion": "2018-02-14",
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "dependsOn": [
+        "[concat('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"
+      ],
+      "name": "[concat(variables('keyVaultName'), '/', variables('storageSASsecretName'))]",
+      "properties": {
+        "value": "[listAccountSas(variables('storageAccountName'), '2018-07-01', parameters('StorageAccountSasProperties')).accountSasToken]"
+      }
+    },
+    {
+      "apiVersion": "2018-02-14",
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "dependsOn": [
+        "[concat('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"
+      ],
+      "name": "[concat(variables('keyVaultName'), '/', variables('storageAccessKeySecretName'))]",
+      "properties": {
+        "value": "[listKeys(variables('storageAccountName'), '2018-07-01').keys[0].value]"
+      }
+    },
+    { // create the azure data factory
+      "name": "[variables('dataFactoryName')]",
+      "type": "Microsoft.DataFactory/factories",
+      "apiVersion": "2018-06-01",
+      "location": "[resourceGroup().location]",
+      "properties": {},
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "tags": "[variables('tags')]",
+      "resources": [
+      ]
+    }
+
+  ]
+}
