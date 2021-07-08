@@ -10,6 +10,20 @@
         "description": "A short identifier (up to 8 characters) for your project that will be added to your resource names"
       }
     },
+    "sqlDbAdminLogin": {
+      "type": "string",
+      "defaultValue": "sqldemoadmin",
+      "metadata": {
+        "description": "The username for the database administrator login"
+      }
+    },
+    "sqlDbAdminPassword": {
+      "type": "securestring",
+      "defaultValue": "!demo54321",
+      "metadata": {
+        "description": "The password for the database administrator login"
+      }
+    },
     "utcValue": {
       "type": "string",
       "defaultValue": "[utcNow('d')]",
@@ -38,6 +52,8 @@
     "adlStorageAccessKeySecretName": "[concat('key-', variables('adlStorageAccountName'))]",
     "adlStorageConnectionStringSecretName": "[concat('constr-', variables('adlStorageAccountName'))]",
     "azureKeyVault_baseUrl": "[concat('https://', variables('keyVaultName'), '.vault.azure.net/')]",
+    "sqldb_servername": "[concat('sqlsrv-', parameters('projectShort'), '-', uniqueString(resourceGroup().id))]",
+    "sqldb_dbname": "[concat('sqldb-', parameters('projectShort'), '-', uniqueString(resourceGroup().id))]",
     "dataFactoryName": "[concat('adf-', parameters('projectShort'), '-', uniqueString(resourceGroup().id))]",
     "factoryId": "[concat('Microsoft.DataFactory/factories/', 'adf-', parameters('projectShort'), '-', uniqueString(resourceGroup().id))]",
     "tags": {
@@ -314,6 +330,59 @@
         "denyEncryptionScopeOverride": false,
         "publicAccess": "None"
       }
+    },
+    {
+      "apiVersion": "2019-06-01-preview",
+      "type": "Microsoft.Sql/servers",
+      "location": "[resourceGroup().location]",
+      "tags": "[variables('tags')]",
+      "name": "[variables('sqldb_servername')]",
+      "properties": {
+        "administratorLogin": "[parameters('sqlDbAdminLogin')]",
+        "administratorLoginPassword": "[parameters('sqlDbAdminPassword')]",
+        "version": "12.0"
+      },
+
+      "resources": [
+        {
+          "apiVersion": "2021-02-01-preview",
+          "dependsOn": [
+            "[concat('Microsoft.Sql/servers/', variables('sqldb_servername'))]"
+          ],
+          "location": "[resourceGroup().location]",
+          "tags": "[variables('tags')]",
+          "name": "[variables('sqldb_dbname')]",
+          "properties": {
+            "collation": "SQL_Latin1_General_CP1_CI_AS",
+            "maxSizeBytes": "34359738368",
+            "zoneRedundant": false,
+            "minCapacity": 0.5,
+            "autoPauseDelay": 60,
+            "readScale": "Disabled",
+            "storageAccountType": "LRS"
+          },
+          "sku": {
+            "name": "GP_S_Gen5",
+            "tier": "GeneralPurpose",
+            "family": "Gen5",
+            "capacity": 4
+          },
+          "type": "databases"
+        },
+        {
+          "apiVersion": "2014-04-01-preview",
+          "dependsOn": [
+            "[concat('Microsoft.Sql/servers/', variables('sqldb_servername'))]"
+          ],
+          "location": "[resourceGroup().location]",
+          "name": "AllowAllWindowsAzureIps",
+          "properties": {
+            "endIpAddress": "0.0.0.0",
+            "startIpAddress": "0.0.0.0"
+          },
+          "type": "firewallrules"
+        }
+      ]
     },
     {
       "type": "Microsoft.KeyVault/vaults",
