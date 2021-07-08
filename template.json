@@ -45,6 +45,7 @@
     "blobStorageAccountName": "[concat('stgblob', parameters('projectShort'), uniqueString(resourceGroup().id))]",
     "adlStorageAccountName": "[concat('stgadl', parameters('projectShort'), uniqueString(resourceGroup().id))]",
     "keyVaultName": "[concat('kv-', parameters('projectShort'), '-', uniqueString(resourceGroup().id))]",
+    "sqlConnectionStringSecretName": "[concat('connstr-', variables('sqldb_servername'))]",
     "blobStorageSASsecretName": "[concat('sas-', variables('blobStorageAccountName'))]",
     "blobStorageAccessKeySecretName": "[concat('key-', variables('blobStorageAccountName'))]",
     "blobStorageConnectionStringSecretName": "[concat('constr-', variables('blobStorageAccountName'))]",
@@ -492,6 +493,18 @@
         "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('adlStorageAccountName'), ';AccountKey=', listKeys(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('blobStorageAccountName')), '2019-04-01').keys[0].value,';EndpointSuffix=core.windows.net')]"
       }
     },
+    {
+      "apiVersion": "2018-02-14",
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "dependsOn": [
+        "[concat('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]",
+        "[concat('Microsoft.Sql/servers/', variables('sqldb_servername'))]"
+      ],
+      "name": "[concat(variables('keyVaultName'), '/', variables('sqlConnectionStringSecretName'))]",
+      "properties": {
+        "value": "[concat('Server=tcp:', variables('sqldb_servername'),'.database.windows.net,1433;Initial Catalog=', variables('sqldb_dbname'),';Persist Security Info=False;User ID=', parameters('sqlDbAdminLogin'),';Password=', parameters('sqlDbAdminPassword'),';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]"
+      }
+    },
     { // create the azure data factory
       "name": "[variables('dataFactoryName')]",
       "type": "Microsoft.DataFactory/factories",
@@ -557,6 +570,29 @@
                   "type": "LinkedServiceReference"
                 },
                 "secretName": "[variables('adlStorageAccessKeySecretName')]"
+              }
+            }
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/linkedServices/KeyVaultService')]"
+          ]
+        },
+        {
+          "name": "[concat(variables('dataFactoryName'), '/sqldb-', parameters('projectShort'))]",
+          "type": "Microsoft.DataFactory/factories/linkedservices",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "annotations": [],
+            "type": "AzureSqlDatabase",
+            "typeProperties": {
+              "connectionString": {
+                "type": "AzureKeyVaultSecret",
+                "store": {
+                  "referenceName": "KeyVaultService",
+                  "type": "LinkedServiceReference"
+                },
+                "secretName": "[variables('sqlConnectionStringSecretName')]"
               }
             }
           },
