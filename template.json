@@ -28,10 +28,16 @@
     }
   },
   "variables": {
-    "storageAccountName": "[concat('stg', parameters('projectShort'), uniqueString(resourceGroup().id))]",
+    "blobStorageAccountName": "[concat('stgblob', parameters('projectShort'), uniqueString(resourceGroup().id))]",
+    "adlStorageAccountName": "[concat('stgadl', parameters('projectShort'), uniqueString(resourceGroup().id))]",
     "keyVaultName": "[concat('kv-', parameters('projectShort'), '-', uniqueString(resourceGroup().id))]",
-    "storageSASsecretName": "[concat('sas-', variables('storageAccountName'))]",
-    "storageAccessKeySecretName": "[concat('key-', variables('storageAccountName'))]",
+    "blobStorageSASsecretName": "[concat('sas-', variables('blobStorageAccountName'))]",
+    "blobStorageAccessKeySecretName": "[concat('key-', variables('blobStorageAccountName'))]",
+    "blobStorageConnectionStringSecretName": "[concat('constr-', variables('blobStorageAccountName'))]",
+    "adlStorageSASsecretName": "[concat('sas-', variables('adlStorageAccountName'))]",
+    "adlStorageAccessKeySecretName": "[concat('key-', variables('adlStorageAccountName'))]",
+    "adlStorageConnectionStringSecretName": "[concat('constr-', variables('adlStorageAccountName'))]",
+    "azureKeyVault_baseUrl": "[concat('https://', variables('keyVaultName'), '.vault.azure.net/')]",
     "dataFactoryName": "[concat('adf-', parameters('projectShort'), '-', uniqueString(resourceGroup().id))]",
     "factoryId": "[concat('Microsoft.DataFactory/factories/', 'adf-', parameters('projectShort'), '-', uniqueString(resourceGroup().id))]",
     "tags": {
@@ -43,7 +49,7 @@
     {
       "type": "Microsoft.Storage/storageAccounts",
       "apiVersion": "2021-04-01",
-      "name": "[variables('storageAccountName')]",
+      "name": "[variables('blobStorageAccountName')]",
       "location": "westeurope",
       "tags": "[variables('tags')]",
       "sku": {
@@ -79,9 +85,9 @@
     {
       "type": "Microsoft.Storage/storageAccounts/blobServices",
       "apiVersion": "2021-04-01",
-      "name": "[concat(variables('storageAccountName'), '/default')]",
+      "name": "[concat(variables('blobStorageAccountName'), '/default')]",
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('blobStorageAccountName'))]"
       ],
       "sku": {
         "name": "Standard_LRS",
@@ -99,9 +105,9 @@
     {
       "type": "Microsoft.Storage/storageAccounts/queueServices",
       "apiVersion": "2021-04-01",
-      "name": "[concat(variables('storageAccountName'), '/default')]",
+      "name": "[concat(variables('blobStorageAccountName'), '/default')]",
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('blobStorageAccountName'))]"
       ],
       "properties": {
         "cors": {
@@ -112,9 +118,9 @@
     {
       "type": "Microsoft.Storage/storageAccounts/tableServices",
       "apiVersion": "2021-04-01",
-      "name": "[concat(variables('storageAccountName'), '/default')]",
+      "name": "[concat(variables('blobStorageAccountName'), '/default')]",
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('blobStorageAccountName'))]"
       ],
       "properties": {
         "cors": {
@@ -125,10 +131,10 @@
     {
       "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
       "apiVersion": "2021-04-01",
-      "name": "[concat(variables('storageAccountName'), '/default/sourcedata')]",
+      "name": "[concat(variables('blobStorageAccountName'), '/default/sourcedata')]",
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageAccountName'), 'default')]",
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('blobStorageAccountName'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('blobStorageAccountName'))]"
       ],
       "properties": {
         "publicAccess": "None"
@@ -137,12 +143,175 @@
     {
       "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
       "apiVersion": "2021-04-01",
-      "name": "[concat(variables('storageAccountName'), '/default/sinkdata')]",
+      "name": "[concat(variables('blobStorageAccountName'), '/default/sinkdata')]",
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageAccountName'), 'default')]",
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('blobStorageAccountName'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('blobStorageAccountName'))]"
       ],
       "properties": {
+        "publicAccess": "None"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2021-04-01",
+      "name": "[variables('adlStorageAccountName')]",
+      "location": "eastus",
+      "sku": {
+        "name": "Standard_RAGRS",
+        "tier": "Standard"
+      },
+      "kind": "StorageV2",
+      "properties": {
+        "minimumTlsVersion": "TLS1_2",
+        "allowBlobPublicAccess": true,
+        "allowSharedKeyAccess": true,
+        "networkAcls": {
+          "bypass": "AzureServices",
+          "virtualNetworkRules": [],
+          "ipRules": [],
+          "defaultAction": "Allow"
+        },
+        "supportsHttpsTrafficOnly": true,
+        "encryption": {
+          "services": {
+            "file": {
+              "keyType": "Account",
+              "enabled": true
+            },
+            "blob": {
+              "keyType": "Account",
+              "enabled": true
+            }
+          },
+          "keySource": "Microsoft.Storage"
+        },
+        "accessTier": "Hot"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices",
+      "apiVersion": "2021-04-01",
+      "name": "[concat(variables('adlStorageAccountName'), '/default')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('adlStorageAccountName'))]"
+      ],
+      "sku": {
+        "name": "Standard_RAGRS",
+        "tier": "Standard"
+      },
+      "properties": {
+        "changeFeed": {
+          "enabled": false
+        },
+        "restorePolicy": {
+          "enabled": false
+        },
+        "containerDeleteRetentionPolicy": {
+          "enabled": false
+        },
+        "cors": {
+          "corsRules": []
+        },
+        "deleteRetentionPolicy": {
+          "enabled": false
+        },
+        "isVersioningEnabled": false
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/queueServices",
+      "apiVersion": "2021-04-01",
+      "name": "[concat(variables('adlStorageAccountName'), '/default')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('adlStorageAccountName'))]"
+      ],
+      "properties": {
+        "cors": {
+          "corsRules": []
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/tableServices",
+      "apiVersion": "2021-04-01",
+      "name": "[concat(variables('adlStorageAccountName'), '/default')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('adlStorageAccountName'))]"
+      ],
+      "properties": {
+        "cors": {
+          "corsRules": []
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2021-04-01",
+      "name": "[concat(variables('adlStorageAccountName'), '/default/extract')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('adlStorageAccountName'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('adlStorageAccountName'))]"
+      ],
+      "properties": {
+        "defaultEncryptionScope": "$account-encryption-key",
+        "denyEncryptionScopeOverride": false,
+        "publicAccess": "None"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2021-04-01",
+      "name": "[concat(variables('adlStorageAccountName'), '/default/loading')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('adlStorageAccountName'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('adlStorageAccountName'))]"
+      ],
+      "properties": {
+        "defaultEncryptionScope": "$account-encryption-key",
+        "denyEncryptionScopeOverride": false,
+        "publicAccess": "None"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2021-04-01",
+      "name": "[concat(variables('adlStorageAccountName'), '/default/movie-in')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('adlStorageAccountName'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('adlStorageAccountName'))]"
+      ],
+      "properties": {
+        "defaultEncryptionScope": "$account-encryption-key",
+        "denyEncryptionScopeOverride": false,
+        "publicAccess": "None"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2021-04-01",
+      "name": "[concat(variables('adlStorageAccountName'), '/default/movie-out')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('adlStorageAccountName'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('adlStorageAccountName'))]"
+      ],
+      "properties": {
+        "defaultEncryptionScope": "$account-encryption-key",
+        "denyEncryptionScopeOverride": false,
+        "publicAccess": "None"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2021-04-01",
+      "name": "[concat(variables('adlStorageAccountName'), '/default/transform')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('adlStorageAccountName'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('adlStorageAccountName'))]"
+      ],
+      "properties": {
+        "defaultEncryptionScope": "$account-encryption-key",
+        "denyEncryptionScopeOverride": false,
         "publicAccess": "None"
       }
     },
@@ -187,11 +356,11 @@
       "type": "Microsoft.KeyVault/vaults/secrets",
       "dependsOn": [
         "[concat('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]",
-        "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"
+        "[concat('Microsoft.Storage/storageAccounts/', variables('blobStorageAccountName'))]"
       ],
-      "name": "[concat(variables('keyVaultName'), '/', variables('storageSASsecretName'))]",
+      "name": "[concat(variables('keyVaultName'), '/', variables('blobStorageSASsecretName'))]",
       "properties": {
-        "value": "[listAccountSas(variables('storageAccountName'), '2018-07-01', parameters('StorageAccountSasProperties')).accountSasToken]"
+        "value": "[listAccountSas(variables('blobStorageAccountName'), '2018-07-01', parameters('StorageAccountSasProperties')).accountSasToken]"
       }
     },
     {
@@ -199,11 +368,59 @@
       "type": "Microsoft.KeyVault/vaults/secrets",
       "dependsOn": [
         "[concat('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]",
-        "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"
+        "[concat('Microsoft.Storage/storageAccounts/', variables('blobStorageAccountName'))]"
       ],
-      "name": "[concat(variables('keyVaultName'), '/', variables('storageAccessKeySecretName'))]",
+      "name": "[concat(variables('keyVaultName'), '/', variables('blobStorageAccessKeySecretName'))]",
       "properties": {
-        "value": "[listKeys(variables('storageAccountName'), '2018-07-01').keys[0].value]"
+        "value": "[listKeys(variables('blobStorageAccountName'), '2018-07-01').keys[0].value]"
+      }
+    },
+    {
+      "apiVersion": "2018-02-14",
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "dependsOn": [
+        "[concat('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('blobStorageAccountName'))]"
+      ],
+      "name": "[concat(variables('keyVaultName'), '/', variables('blobStorageConnectionStringSecretName'))]",
+      "properties": {
+        "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('blobStorageAccountName'), ';AccountKey=', listKeys(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('blobStorageAccountName')), '2019-04-01').keys[0].value,';EndpointSuffix=core.windows.net')]"
+      }
+    },
+    {
+      "apiVersion": "2018-02-14",
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "dependsOn": [
+        "[concat('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('adlStorageAccountName'))]"
+      ],
+      "name": "[concat(variables('keyVaultName'), '/', variables('adlStorageSASsecretName'))]",
+      "properties": {
+        "value": "[listAccountSas(variables('adlStorageAccountName'), '2018-07-01', parameters('StorageAccountSasProperties')).accountSasToken]"
+      }
+    },
+    {
+      "apiVersion": "2018-02-14",
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "dependsOn": [
+        "[concat('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('adlStorageAccountName'))]"
+      ],
+      "name": "[concat(variables('keyVaultName'), '/', variables('adlStorageAccessKeySecretName'))]",
+      "properties": {
+        "value": "[listKeys(variables('adlStorageAccountName'), '2018-07-01').keys[0].value]"
+      }
+    },
+    {
+      "apiVersion": "2018-02-14",
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "dependsOn": [
+        "[concat('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('adlStorageAccountName'))]"
+      ],
+      "name": "[concat(variables('keyVaultName'), '/', variables('adlStorageConnectionStringSecretName'))]",
+      "properties": {
+        "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('adlStorageAccountName'), ';AccountKey=', listKeys(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('blobStorageAccountName')), '2019-04-01').keys[0].value,';EndpointSuffix=core.windows.net')]"
       }
     },
     { // create the azure data factory
@@ -217,8 +434,69 @@
       },
       "tags": "[variables('tags')]",
       "resources": [
+        {
+          "name": "[concat(variables('dataFactoryName'), '/KeyVaultService')]",
+          "type": "Microsoft.DataFactory/factories/linkedServices",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "annotations": [],
+            "type": "AzureKeyVault",
+            "typeProperties": {
+              "baseUrl": "[variables('azureKeyVault_baseUrl')]"
+            }
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]"
+          ]
+        },
+        {
+          "name": "[concat(variables('dataFactoryName'), '/blob-', parameters('projectShort'))]",
+          "type": "Microsoft.DataFactory/factories/linkedservices",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "annotations": [],
+            "type": "AzureBlobStorage",
+            "typeProperties": {
+              "connectionString": {
+                "type": "AzureKeyVaultSecret",
+                "store": {
+                  "referenceName": "KeyVaultService",
+                  "type": "LinkedServiceReference"
+                },
+                "secretName": "[variables('blobStorageConnectionStringSecretName')]"
+              }
+            }
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/linkedServices/KeyVaultService')]"
+          ]
+        },
+        {
+          "name": "[concat(variables('dataFactoryName'), '/adl-', parameters('projectShort'))]",
+          "type": "Microsoft.DataFactory/factories/linkedservices",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "annotations": [],
+            "type": "AzureBlobFS",
+            "typeProperties": {
+              "url": "[concat('https://', variables('adlStorageAccountName'),'.dfs.core.windows.net/')]",
+              "accountKey": {
+                "type": "AzureKeyVaultSecret",
+                "store": {
+                  "referenceName": "KeyVaultService",
+                  "type": "LinkedServiceReference"
+                },
+                "secretName": "[variables('adlStorageAccessKeySecretName')]"
+              }
+            }
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/linkedServices/KeyVaultService')]"
+          ]
+        }
       ]
     }
-
   ]
 }
