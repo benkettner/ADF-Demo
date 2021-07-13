@@ -56,14 +56,14 @@
     "sqldb_servername": "[concat('sqlsrv-', parameters('projectShort'), '-', uniqueString(resourceGroup().id))]",
     "sqldb_dbname": "[concat('sqldb-', parameters('projectShort'), '-', uniqueString(resourceGroup().id))]",
     "dataFactoryName": "[concat('adf-', parameters('projectShort'), '-', uniqueString(resourceGroup().id))]",
-    "factoryId": "[concat('Microsoft.DataFactory/factories/', 'adf-', parameters('projectShort'), '-', uniqueString(resourceGroup().id))]",
+    "factoryId": "[concat('Microsoft.DataFactory/factories/adf-', parameters('projectShort'), '-', uniqueString(resourceGroup().id))]",
     "tags": {
       "createdOn": "[parameters('utcValue')]",
       "createdBy": "[concat('Automatic deployment for ', parameters('projectShort'))]"
     }
   },
   "resources": [
-    {
+    { // create blob storage account
       "type": "Microsoft.Storage/storageAccounts",
       "apiVersion": "2021-04-01",
       "name": "[variables('blobStorageAccountName')]",
@@ -99,7 +99,7 @@
         "accessTier": "Hot"
       }
     },
-    {
+    { // create blob storage blob service
       "type": "Microsoft.Storage/storageAccounts/blobServices",
       "apiVersion": "2021-04-01",
       "name": "[concat(variables('blobStorageAccountName'), '/default')]",
@@ -119,7 +119,7 @@
         }
       }
     },
-    {
+    { // create blob storage queue service
       "type": "Microsoft.Storage/storageAccounts/queueServices",
       "apiVersion": "2021-04-01",
       "name": "[concat(variables('blobStorageAccountName'), '/default')]",
@@ -132,7 +132,7 @@
         }
       }
     },
-    {
+    { // create blob storage table service
       "type": "Microsoft.Storage/storageAccounts/tableServices",
       "apiVersion": "2021-04-01",
       "name": "[concat(variables('blobStorageAccountName'), '/default')]",
@@ -145,7 +145,7 @@
         }
       }
     },
-    {
+    { // create blob storage sourcedata container
       "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
       "apiVersion": "2021-04-01",
       "name": "[concat(variables('blobStorageAccountName'), '/default/sourcedata')]",
@@ -157,7 +157,7 @@
         "publicAccess": "None"
       }
     },
-    {
+    { // create blob storage sinkdata container
       "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
       "apiVersion": "2021-04-01",
       "name": "[concat(variables('blobStorageAccountName'), '/default/sinkdata')]",
@@ -169,7 +169,7 @@
         "publicAccess": "None"
       }
     },
-    {
+    { // create adl storage account
       "type": "Microsoft.Storage/storageAccounts",
       "apiVersion": "2021-04-01",
       "name": "[variables('adlStorageAccountName')]",
@@ -206,7 +206,7 @@
         "accessTier": "Hot"
       }
     },
-    {
+    { // create adl storage blob services
       "type": "Microsoft.Storage/storageAccounts/blobServices",
       "apiVersion": "2021-04-01",
       "name": "[concat(variables('adlStorageAccountName'), '/default')]",
@@ -236,7 +236,7 @@
         "isVersioningEnabled": false
       }
     },
-    {
+    { // create adl storage queue services
       "type": "Microsoft.Storage/storageAccounts/queueServices",
       "apiVersion": "2021-04-01",
       "name": "[concat(variables('adlStorageAccountName'), '/default')]",
@@ -249,7 +249,7 @@
         }
       }
     },
-    {
+    { // create adl storage table services
       "type": "Microsoft.Storage/storageAccounts/tableServices",
       "apiVersion": "2021-04-01",
       "name": "[concat(variables('adlStorageAccountName'), '/default')]",
@@ -262,7 +262,7 @@
         }
       }
     },
-    {
+    { // create blob extract container
       "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
       "apiVersion": "2021-04-01",
       "name": "[concat(variables('adlStorageAccountName'), '/default/extract')]",
@@ -276,7 +276,7 @@
         "publicAccess": "None"
       }
     },
-    {
+    { // create blob loading container
       "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
       "apiVersion": "2021-04-01",
       "name": "[concat(variables('adlStorageAccountName'), '/default/loading')]",
@@ -290,7 +290,7 @@
         "publicAccess": "None"
       }
     },
-    {
+    { // create blob movie in container
       "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
       "apiVersion": "2021-04-01",
       "name": "[concat(variables('adlStorageAccountName'), '/default/movie-in')]",
@@ -304,7 +304,7 @@
         "publicAccess": "None"
       }
     },
-    {
+    { // create blob movie out container
       "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
       "apiVersion": "2021-04-01",
       "name": "[concat(variables('adlStorageAccountName'), '/default/movie-out')]",
@@ -318,7 +318,7 @@
         "publicAccess": "None"
       }
     },
-    {
+    { // create blob tranform container
       "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
       "apiVersion": "2021-04-01",
       "name": "[concat(variables('adlStorageAccountName'), '/default/transform')]",
@@ -332,7 +332,7 @@
         "publicAccess": "None"
       }
     },
-    {
+    { // create sql server and database
       "apiVersion": "2019-06-01-preview",
       "type": "Microsoft.Sql/servers",
       "location": "[resourceGroup().location]",
@@ -385,7 +385,7 @@
         }
       ]
     },
-    {
+    { // create key vault
       "type": "Microsoft.KeyVault/vaults",
       "apiVersion": "2018-02-14",
       "name": "[variables('keyVaultName')]",
@@ -421,7 +421,7 @@
         }
       }
     },
-    {
+    { // create blob sas secret
       "apiVersion": "2018-02-14",
       "type": "Microsoft.KeyVault/vaults/secrets",
       "dependsOn": [
@@ -433,7 +433,7 @@
         "value": "[listAccountSas(variables('blobStorageAccountName'), '2018-07-01', parameters('StorageAccountSasProperties')).accountSasToken]"
       }
     },
-    {
+    { // create blob acces key secret
       "apiVersion": "2018-02-14",
       "type": "Microsoft.KeyVault/vaults/secrets",
       "dependsOn": [
@@ -445,7 +445,7 @@
         "value": "[listKeys(variables('blobStorageAccountName'), '2018-07-01').keys[0].value]"
       }
     },
-    {
+    { // create blob connection string secret
       "apiVersion": "2018-02-14",
       "type": "Microsoft.KeyVault/vaults/secrets",
       "dependsOn": [
@@ -457,7 +457,7 @@
         "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('blobStorageAccountName'), ';AccountKey=', listKeys(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('blobStorageAccountName')), '2019-04-01').keys[0].value,';EndpointSuffix=core.windows.net')]"
       }
     },
-    {
+    { // create adl sas secret
       "apiVersion": "2018-02-14",
       "type": "Microsoft.KeyVault/vaults/secrets",
       "dependsOn": [
@@ -469,7 +469,7 @@
         "value": "[listAccountSas(variables('adlStorageAccountName'), '2018-07-01', parameters('StorageAccountSasProperties')).accountSasToken]"
       }
     },
-    {
+    { // create adl access key secret
       "apiVersion": "2018-02-14",
       "type": "Microsoft.KeyVault/vaults/secrets",
       "dependsOn": [
@@ -481,7 +481,7 @@
         "value": "[listKeys(variables('adlStorageAccountName'), '2018-07-01').keys[0].value]"
       }
     },
-    {
+    { // create adl connection string secret
       "apiVersion": "2018-02-14",
       "type": "Microsoft.KeyVault/vaults/secrets",
       "dependsOn": [
@@ -493,7 +493,7 @@
         "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('adlStorageAccountName'), ';AccountKey=', listKeys(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', variables('blobStorageAccountName')), '2019-04-01').keys[0].value,';EndpointSuffix=core.windows.net')]"
       }
     },
-    {
+    { // create sqldb connection string secret
       "apiVersion": "2018-02-14",
       "type": "Microsoft.KeyVault/vaults/secrets",
       "dependsOn": [
@@ -516,7 +516,7 @@
       },
       "tags": "[variables('tags')]",
       "resources": [
-        {
+        { // create key vault linked service 
           "name": "[concat(variables('dataFactoryName'), '/KeyVaultService')]",
           "type": "Microsoft.DataFactory/factories/linkedServices",
           "apiVersion": "2018-06-01",
@@ -531,8 +531,8 @@
             "[variables('dataFactoryName')]"
           ]
         },
-        {
-          "name": "[concat(variables('dataFactoryName'), '/blob-', parameters('projectShort'))]",
+        { // create blob storage linked servce
+          "name": "[concat(variables('dataFactoryName'), '/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Blob')]",
           "type": "Microsoft.DataFactory/factories/linkedservices",
           "apiVersion": "2018-06-01",
           "properties": {
@@ -554,8 +554,8 @@
             "[concat(variables('factoryId'), '/linkedServices/KeyVaultService')]"
           ]
         },
-        {
-          "name": "[concat(variables('dataFactoryName'), '/adl-', parameters('projectShort'))]",
+        { // create adl storage linked service
+          "name": "[concat(variables('dataFactoryName'), '/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Adl')]",
           "type": "Microsoft.DataFactory/factories/linkedservices",
           "apiVersion": "2018-06-01",
           "properties": {
@@ -578,8 +578,8 @@
             "[concat(variables('factoryId'), '/linkedServices/KeyVaultService')]"
           ]
         },
-        {
-          "name": "[concat(variables('dataFactoryName'), '/sqldb-', parameters('projectShort'))]",
+        { // create sqldb linked service
+          "name": "[concat(variables('dataFactoryName'), '/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'SQLdb')]",
           "type": "Microsoft.DataFactory/factories/linkedservices",
           "apiVersion": "2018-06-01",
           "properties": {
@@ -599,6 +599,381 @@
           "dependsOn": [
             "[variables('dataFactoryName')]",
             "[concat(variables('factoryId'), '/linkedServices/KeyVaultService')]"
+          ]
+        },
+        { // create blob stoarge dataset
+          "name": "[concat(variables('dataFactoryName'), '/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Blob')]",
+          "type": "Microsoft.DataFactory/factories/datasets",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "[concat('LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Blob')]",
+              "type": "LinkedServiceReference"
+            },
+            "annotations": [],
+            "type": "DelimitedText",
+            "typeProperties": {
+              "location": {
+                "type": "AzureBlobStorageLocation",
+                "fileName": "moviesDB.csv",
+                "container": "movie-in"
+              },
+              "columnDelimiter": ",",
+              "escapeChar": "\\",
+              "firstRowAsHeader": true,
+              "quoteChar": "\""
+            },
+            "schema": [
+              {
+                "name": "movie",
+                "type": "String"
+              },
+              {
+                "name": "title",
+                "type": "String"
+              },
+              {
+                "name": "genres",
+                "type": "String"
+              },
+              {
+                "name": "year",
+                "type": "String"
+              },
+              {
+                "name": "Rating",
+                "type": "String"
+              },
+              {
+                "name": "Rotton Tomato",
+                "type": "String"
+              },
+              {
+                "name": "Address",
+                "type": "String"
+              }
+            ]
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/linkedServices/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Blob')]"
+          ]
+        },
+        { // create adl storage extra dataset
+          "name": "[concat(variables('dataFactoryName'), '/DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Extra')]",
+          "type": "Microsoft.DataFactory/factories/datasets",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "[concat('LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Adl')]",
+              "type": "LinkedServiceReference"
+            },
+            "annotations": [],
+            "type": "DelimitedText",
+            "typeProperties": {
+              "location": {
+                "type": "AzureBlobFSLocation",
+                "fileSystem": "loading"
+              },
+              "columnDelimiter": ",",
+              "escapeChar": "\\",
+              "firstRowAsHeader": true,
+              "quoteChar": "\""
+            },
+            "schema": [
+              {
+                "name": "id_odsp",
+                "type": "String"
+              },
+              {
+                "name": "id_event",
+                "type": "String"
+              },
+              {
+                "name": "sort_order",
+                "type": "String"
+              },
+              {
+                "name": "time",
+                "type": "String"
+              },
+              {
+                "name": "text",
+                "type": "String"
+              },
+              {
+                "name": "event_type",
+                "type": "String"
+              },
+              {
+                "name": "event_type2",
+                "type": "String"
+              },
+              {
+                "name": "side",
+                "type": "String"
+              },
+              {
+                "name": "event_team",
+                "type": "String"
+              },
+              {
+                "name": "opponent",
+                "type": "String"
+              },
+              {
+                "name": "player",
+                "type": "String"
+              },
+              {
+                "name": "player2",
+                "type": "String"
+              },
+              {
+                "name": "player_in",
+                "type": "String"
+              },
+              {
+                "name": "player_out",
+                "type": "String"
+              },
+              {
+                "name": "shot_place",
+                "type": "String"
+              },
+              {
+                "name": "shot_outcome",
+                "type": "String"
+              },
+              {
+                "name": "is_goal",
+                "type": "String"
+              },
+              {
+                "name": "location",
+                "type": "String"
+              },
+              {
+                "name": "bodypart",
+                "type": "String"
+              },
+              {
+                "name": "assist_method",
+                "type": "String"
+              },
+              {
+                "name": "situation",
+                "type": "String"
+              },
+              {
+                "name": "fast_break",
+                "type": "String"
+              }
+            ]
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/linkedServices/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Adl')]"
+          ]
+        },
+        { // create adl storage source dataset
+          "name": "[concat(variables('dataFactoryName'), '/DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Source')]",
+          "type": "Microsoft.DataFactory/factories/datasets",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "[concat('LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Adl')]",
+              "type": "LinkedServiceReference"
+            },
+            "annotations": [],
+            "type": "DelimitedText",
+            "typeProperties": {
+              "location": {
+                "type": "AzureBlobFSLocation",
+                "fileName": "events.txt",
+                "fileSystem": "loading"
+              },
+              "columnDelimiter": ",",
+              "escapeChar": "\\",
+              "firstRowAsHeader": true,
+              "quoteChar": "\""
+            },
+            "schema": [
+              {
+                "name": "id_odsp",
+                "type": "String"
+              },
+              {
+                "name": "id_event",
+                "type": "String"
+              },
+              {
+                "name": "sort_order",
+                "type": "String"
+              },
+              {
+                "name": "time",
+                "type": "String"
+              },
+              {
+                "name": "text",
+                "type": "String"
+              },
+              {
+                "name": "event_type",
+                "type": "String"
+              },
+              {
+                "name": "event_type2",
+                "type": "String"
+              },
+              {
+                "name": "side",
+                "type": "String"
+              },
+              {
+                "name": "event_team",
+                "type": "String"
+              },
+              {
+                "name": "opponent",
+                "type": "String"
+              },
+              {
+                "name": "player",
+                "type": "String"
+              },
+              {
+                "name": "player2",
+                "type": "String"
+              },
+              {
+                "name": "player_in",
+                "type": "String"
+              },
+              {
+                "name": "player_out",
+                "type": "String"
+              },
+              {
+                "name": "shot_place",
+                "type": "String"
+              },
+              {
+                "name": "shot_outcome",
+                "type": "String"
+              },
+              {
+                "name": "is_goal",
+                "type": "String"
+              },
+              {
+                "name": "location",
+                "type": "String"
+              },
+              {
+                "name": "bodypart",
+                "type": "String"
+              },
+              {
+                "name": "assist_method",
+                "type": "String"
+              },
+              {
+                "name": "situation",
+                "type": "String"
+              },
+              {
+                "name": "fast_break",
+                "type": "String"
+              }
+            ]
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/linkedServices/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Adl')]"
+          ]
+        },
+        { // create adl storage sink dataset
+          "name": "[concat(variables('dataFactoryName'), '/DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Sink')]",
+          "type": "Microsoft.DataFactory/factories/datasets",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "[concat('LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Adl')]",
+              "type": "LinkedServiceReference"
+            },
+            "annotations": [],
+            "type": "DelimitedText",
+            "typeProperties": {
+              "location": {
+                "type": "AzureBlobFSLocation",
+                "fileSystem": "movie-out"
+              },
+              "columnDelimiter": ",",
+              "escapeChar": "\\",
+              "quoteChar": "\""
+            },
+            "schema": []
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/linkedServices/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Adl')]"
+          ]
+        },
+        { // create dataset sql sink
+          "name": "[concat(variables('dataFactoryName'), '/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'SQLSink')]",
+          "type": "Microsoft.DataFactory/factories/datasets",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "[concat('LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'SQLdb')]",
+              "type": "LinkedServiceReference"
+            },
+            "annotations": [],
+            "type": "AzureSqlTable",
+            "schema": [
+              {
+                "name": "id_odsp",
+                "type": "varchar"
+              },
+              {
+                "name": "id_event",
+                "type": "varchar"
+              },
+              {
+                "name": "sort_order",
+                "type": "int",
+                "precision": 10
+              },
+              {
+                "name": "time",
+                "type": "int",
+                "precision": 10
+              },
+              {
+                "name": "event_type",
+                "type": "int",
+                "precision": 10
+              },
+              {
+                "name": "event_type_str",
+                "type": "varchar"
+              },
+              {
+                "name": "event_type2",
+                "type": "int",
+                "precision": 10
+              }
+            ],
+            "typeProperties": {
+              "schema": "dbo",
+              "table": "game_events"
+            }
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/linkedServices/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'SQLdb')]"
           ]
         }
       ]
