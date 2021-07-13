@@ -1101,7 +1101,7 @@
             "[concat(variables('factoryId'), '/linkedServices/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Adl')]"
           ]
         },
-        {
+        { // create movie loading pipeline
           "name": "[concat(variables('dataFactoryName'), '/Loading')]",
           "type": "Microsoft.DataFactory/factories/pipelines",
           "apiVersion": "2018-06-01",
@@ -1323,8 +1323,109 @@
           "dependsOn": [
             "[variables('dataFactoryName')]",
             "[concat(variables('factoryId'), '/datasets/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'BlobLoadingSrc')]",
-            "[concat('Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Blob')]",
-            "[concat('DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LoadingSource')]"
+            "[concat(variables('factoryId'), '/datasets/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Blob')]",
+            "[concat(variables('factoryId'), '/datasets/DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LoadingSource')]"
+          ]
+        },
+        {
+          "name": "[concat(variables('dataFactoryName'), '/Transformation')]",
+          "type": "Microsoft.DataFactory/factories/pipelines",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "activities": [
+              {
+                "name": "Data flow - Movie",
+                "type": "ExecuteDataFlow",
+                "dependsOn": [],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "dataflow": {
+                    "referenceName": "MovieETL",
+                    "type": "DataFlowReference"
+                  },
+                  "compute": {
+                    "coreCount": 8,
+                    "computeType": "General"
+                  },
+                  "traceLevel": "Fine"
+                }
+              }
+            ],
+            "folder": {
+              "name": "MovieELT/Transforming"
+            },
+            "annotations": [],
+            "lastPublishTime": "2021-05-15T00:16:40Z"
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/datasets/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'BlobLoadingSrc')]",
+            "[concat(variables('factoryId'), '/dataflows/MovieETL')]"
+          ]
+        },
+        {
+          "name": "[concat(variables('dataFactoryName'), '/MovieETL')]",
+          "apiVersion": "2018-06-01",
+          "type": "Microsoft.DataFactory/factories/dataflows",
+          "properties": {
+            "folder": {
+              "name": "Movie"
+            },
+            "type": "MappingDataFlow",
+            "typeProperties": {
+              "sources": [
+                {
+                  "dataset": {
+                    "referenceName": "[concat('DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LoadingSource')]",
+                    "type": "DatasetReference"
+                  },
+                  "name": "MovieDB"
+                }
+              ],
+              "sinks": [
+                {
+                  "dataset": {
+                    "referenceName": "[concat('DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Sink')]",
+                    "type": "DatasetReference"
+                  },
+                  "name": "MoviesSink"
+                },
+                {
+                  "dataset": {
+                    "referenceName": "[concat('DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Sink')]",
+                    "type": "DatasetReference"
+                  },
+                  "name": "AllData"
+                }
+              ],
+              "transformations": [
+                {
+                  "name": "FilterYear"
+                },
+                {
+                  "name": "AggregateComedyRatings"
+                },
+                {
+                  "name": "DerivedColumnAddress"
+                },
+                {
+                  "name": "DerivedColumnAll"
+                }
+              ],
+              "script": "source(output(\n\t\tmovie as string,\n\t\ttitle as string,\n\t\tgenres as string,\n\t\tyear as string,\n\t\tRating as string,\n\t\t{Rotton Tomato} as string,\n\t\tProp_6 as string,\n\t\tAddress as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\twildcardPaths:[('moviesDB.txt')]) ~> MovieDB\nMovieDB filter(toInteger(year) >= 1910 && toInteger(year) <= 2000 && rlike(genres, 'Comedy')) ~> FilterYear\nDerivedColumnAll aggregate(groupBy(year),\n\tAverageComedyRating = avg(toInteger(Rating))) ~> AggregateComedyRatings\nFilterYear derive(AllAddress = regexReplace(regexReplace(Address,'[\\n]',','),'[\\r]',',')) ~> DerivedColumnAddress\nDerivedColumnAddress derive({Address 1} = split({AllAddress},',')[1],\n\t\t{Address 2} = split({AllAddress},',')[2],\n\t\t{Address 3} = split({AllAddress},',')[3],\n\t\t{Address 4} = split({AllAddress},',')[4]) ~> DerivedColumnAll\nAggregateComedyRatings sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['RatedMovie'],\n\tumask: 0022,\n\tpartitionBy('hash', 1)) ~> MoviesSink\nDerivedColumnAll sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['MovieWithMoreInfo'],\n\tumask: 0022,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> AllData"
+            }
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/datasets/DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Sink')]",
+            "[concat(variables('factoryId'), '/datasets/DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LoadingSource')]"
           ]
         }
       ]
