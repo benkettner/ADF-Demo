@@ -516,7 +516,7 @@
       },
       "tags": "[variables('tags')]",
       "resources": [
-        { // create key vault linked service 
+        { // create key vault linked service KeyVaultService
           "name": "[concat(variables('dataFactoryName'), '/KeyVaultService')]",
           "type": "Microsoft.DataFactory/factories/linkedServices",
           "apiVersion": "2018-06-01",
@@ -531,8 +531,8 @@
             "[variables('dataFactoryName')]"
           ]
         },
-        { // create blob storage linked servce
-          "name": "[concat(variables('dataFactoryName'), '/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Blob')]",
+        { // create blob storage linked servce LS_ABLB_IN
+          "name": "[concat(variables('dataFactoryName'), '/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LS_ABLB_IN')]",
           "type": "Microsoft.DataFactory/factories/linkedservices",
           "apiVersion": "2018-06-01",
           "properties": {
@@ -554,8 +554,8 @@
             "[concat(variables('factoryId'), '/linkedServices/KeyVaultService')]"
           ]
         },
-        { // create adl storage linked service
-          "name": "[concat(variables('dataFactoryName'), '/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Adl')]",
+        { // create adl storage linked service LS_ADLS
+          "name": "[concat(variables('dataFactoryName'), '/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LS_ADLS')]",
           "type": "Microsoft.DataFactory/factories/linkedservices",
           "apiVersion": "2018-06-01",
           "properties": {
@@ -578,8 +578,8 @@
             "[concat(variables('factoryId'), '/linkedServices/KeyVaultService')]"
           ]
         },
-        { // create sqldb linked service
-          "name": "[concat(variables('dataFactoryName'), '/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'SQLdb')]",
+        { // create sqldb linked service LS_ASQL
+          "name": "[concat(variables('dataFactoryName'), '/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LS_ASQL')]",
           "type": "Microsoft.DataFactory/factories/linkedservices",
           "apiVersion": "2018-06-01",
           "properties": {
@@ -601,460 +601,39 @@
             "[concat(variables('factoryId'), '/linkedServices/KeyVaultService')]"
           ]
         },
-        { // create blob stoarge dataset
-          "name": "[concat(variables('dataFactoryName'), '/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Blob')]",
+        { // create Dataset ADLS_STAGING 
+          "name": "[concat(variables('dataFactoryName'), '/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1), 'DS_ADLS_STAGING')]",
           "type": "Microsoft.DataFactory/factories/datasets",
           "apiVersion": "2018-06-01",
           "properties": {
             "linkedServiceName": {
-              "referenceName": "[concat('LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Blob')]",
+              "referenceName": "[concat('LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LS_ADLS')]",
               "type": "LinkedServiceReference"
             },
-            "annotations": [],
-            "type": "DelimitedText",
-            "typeProperties": {
-              "location": {
-                "type": "AzureBlobStorageLocation",
-                "fileName": "moviesDB.csv",
-                "container": "movie-in"
+            "parameters": {
+              "FileName": {
+                "type": "string"
               },
-              "columnDelimiter": ",",
-              "escapeChar": "\\",
-              "firstRowAsHeader": true,
-              "quoteChar": "\""
-            },
-            "schema": [
-              {
-                "name": "movie",
-                "type": "String"
-              },
-              {
-                "name": "title",
-                "type": "String"
-              },
-              {
-                "name": "genres",
-                "type": "String"
-              },
-              {
-                "name": "year",
-                "type": "String"
-              },
-              {
-                "name": "Rating",
-                "type": "String"
-              },
-              {
-                "name": "Rotton Tomato",
-                "type": "String"
-              },
-              {
-                "name": "Address",
-                "type": "String"
+              "Speccode": {
+                "type": "string"
               }
-            ]
-          },
-          "dependsOn": [
-            "[variables('dataFactoryName')]",
-            "[concat(variables('factoryId'), '/linkedServices/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Blob')]"
-          ]
-        },
-        { // create adl storage extra dataset
-          "name": "[concat(variables('dataFactoryName'), '/DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Extra')]",
-          "type": "Microsoft.DataFactory/factories/datasets",
-          "apiVersion": "2018-06-01",
-          "properties": {
-            "linkedServiceName": {
-              "referenceName": "[concat('LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Adl')]",
-              "type": "LinkedServiceReference"
-            },
-            "annotations": [],
-            "type": "DelimitedText",
-            "typeProperties": {
-              "location": {
-                "type": "AzureBlobFSLocation",
-                "fileSystem": "loading"
-              },
-              "columnDelimiter": ",",
-              "escapeChar": "\\",
-              "firstRowAsHeader": true,
-              "quoteChar": "\""
-            },
-            "schema": [
-              {
-                "name": "id_odsp",
-                "type": "String"
-              },
-              {
-                "name": "id_event",
-                "type": "String"
-              },
-              {
-                "name": "sort_order",
-                "type": "String"
-              },
-              {
-                "name": "time",
-                "type": "String"
-              },
-              {
-                "name": "text",
-                "type": "String"
-              },
-              {
-                "name": "event_type",
-                "type": "String"
-              },
-              {
-                "name": "event_type2",
-                "type": "String"
-              },
-              {
-                "name": "side",
-                "type": "String"
-              },
-              {
-                "name": "event_team",
-                "type": "String"
-              },
-              {
-                "name": "opponent",
-                "type": "String"
-              },
-              {
-                "name": "player",
-                "type": "String"
-              },
-              {
-                "name": "player2",
-                "type": "String"
-              },
-              {
-                "name": "player_in",
-                "type": "String"
-              },
-              {
-                "name": "player_out",
-                "type": "String"
-              },
-              {
-                "name": "shot_place",
-                "type": "String"
-              },
-              {
-                "name": "shot_outcome",
-                "type": "String"
-              },
-              {
-                "name": "is_goal",
-                "type": "String"
-              },
-              {
-                "name": "location",
-                "type": "String"
-              },
-              {
-                "name": "bodypart",
-                "type": "String"
-              },
-              {
-                "name": "assist_method",
-                "type": "String"
-              },
-              {
-                "name": "situation",
-                "type": "String"
-              },
-              {
-                "name": "fast_break",
-                "type": "String"
-              }
-            ]
-          },
-          "dependsOn": [
-            "[variables('dataFactoryName')]",
-            "[concat(variables('factoryId'), '/linkedServices/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Adl')]"
-          ]
-        },
-        { // create adl storage source dataset
-          "name": "[concat(variables('dataFactoryName'), '/DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Source')]",
-          "type": "Microsoft.DataFactory/factories/datasets",
-          "apiVersion": "2018-06-01",
-          "properties": {
-            "linkedServiceName": {
-              "referenceName": "[concat('LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Adl')]",
-              "type": "LinkedServiceReference"
-            },
-            "annotations": [],
-            "type": "DelimitedText",
-            "typeProperties": {
-              "location": {
-                "type": "AzureBlobFSLocation",
-                "fileName": "events.txt",
-                "fileSystem": "loading"
-              },
-              "columnDelimiter": ",",
-              "escapeChar": "\\",
-              "firstRowAsHeader": true,
-              "quoteChar": "\""
-            },
-            "schema": [
-              {
-                "name": "id_odsp",
-                "type": "String"
-              },
-              {
-                "name": "id_event",
-                "type": "String"
-              },
-              {
-                "name": "sort_order",
-                "type": "String"
-              },
-              {
-                "name": "time",
-                "type": "String"
-              },
-              {
-                "name": "text",
-                "type": "String"
-              },
-              {
-                "name": "event_type",
-                "type": "String"
-              },
-              {
-                "name": "event_type2",
-                "type": "String"
-              },
-              {
-                "name": "side",
-                "type": "String"
-              },
-              {
-                "name": "event_team",
-                "type": "String"
-              },
-              {
-                "name": "opponent",
-                "type": "String"
-              },
-              {
-                "name": "player",
-                "type": "String"
-              },
-              {
-                "name": "player2",
-                "type": "String"
-              },
-              {
-                "name": "player_in",
-                "type": "String"
-              },
-              {
-                "name": "player_out",
-                "type": "String"
-              },
-              {
-                "name": "shot_place",
-                "type": "String"
-              },
-              {
-                "name": "shot_outcome",
-                "type": "String"
-              },
-              {
-                "name": "is_goal",
-                "type": "String"
-              },
-              {
-                "name": "location",
-                "type": "String"
-              },
-              {
-                "name": "bodypart",
-                "type": "String"
-              },
-              {
-                "name": "assist_method",
-                "type": "String"
-              },
-              {
-                "name": "situation",
-                "type": "String"
-              },
-              {
-                "name": "fast_break",
-                "type": "String"
-              }
-            ]
-          },
-          "dependsOn": [
-            "[variables('dataFactoryName')]",
-            "[concat(variables('factoryId'), '/linkedServices/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Adl')]"
-          ]
-        },
-        { // create adl storage sink dataset
-          "name": "[concat(variables('dataFactoryName'), '/DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Sink')]",
-          "type": "Microsoft.DataFactory/factories/datasets",
-          "apiVersion": "2018-06-01",
-          "properties": {
-            "linkedServiceName": {
-              "referenceName": "[concat('LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Adl')]",
-              "type": "LinkedServiceReference"
-            },
-            "annotations": [],
-            "type": "DelimitedText",
-            "typeProperties": {
-              "location": {
-                "type": "AzureBlobFSLocation",
-                "fileSystem": "movie-out"
-              },
-              "columnDelimiter": ",",
-              "escapeChar": "\\",
-              "quoteChar": "\""
-            },
-            "schema": []
-          },
-          "dependsOn": [
-            "[variables('dataFactoryName')]",
-            "[concat(variables('factoryId'), '/linkedServices/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Adl')]"
-          ]
-        },
-        { // create dataset sql sink
-          "name": "[concat(variables('dataFactoryName'), '/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'SQLSink')]",
-          "type": "Microsoft.DataFactory/factories/datasets",
-          "apiVersion": "2018-06-01",
-          "properties": {
-            "linkedServiceName": {
-              "referenceName": "[concat('LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'SQLdb')]",
-              "type": "LinkedServiceReference"
-            },
-            "annotations": [],
-            "type": "AzureSqlTable",
-            "schema": [
-              {
-                "name": "id_odsp",
-                "type": "varchar"
-              },
-              {
-                "name": "id_event",
-                "type": "varchar"
-              },
-              {
-                "name": "sort_order",
-                "type": "int",
-                "precision": 10
-              },
-              {
-                "name": "time",
-                "type": "int",
-                "precision": 10
-              },
-              {
-                "name": "event_type",
-                "type": "int",
-                "precision": 10
-              },
-              {
-                "name": "event_type_str",
-                "type": "varchar"
-              },
-              {
-                "name": "event_type2",
-                "type": "int",
-                "precision": 10
-              }
-            ],
-            "typeProperties": {
-              "schema": "dbo",
-              "table": "game_events"
-            }
-          },
-          "dependsOn": [
-            "[variables('dataFactoryName')]",
-            "[concat(variables('factoryId'), '/linkedServices/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'SQLdb')]"
-          ]
-        },
-        { // create dataset blob storage loading source 
-          "name": "[concat(variables('dataFactoryName'), '/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'BlobLoadingSrc')]",
-          "type": "Microsoft.DataFactory/factories/datasets",
-          "apiVersion": "2018-06-01",
-          "properties": {
-            "linkedServiceName": {
-              "referenceName": "[concat('LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Blob')]",
-              "type": "LinkedServiceReference"
             },
             "folder": {
-              "name": "Loading"
-            },
-            "annotations": [],
-            "type": "DelimitedText",
-            "typeProperties": {
-              "location": {
-                "type": "AzureBlobStorageLocation",
-                "container": "movie-in"
-              },
-              "columnDelimiter": ",",
-              "escapeChar": "\\",
-              "firstRowAsHeader": true,
-              "quoteChar": "\""
-            },
-            "schema": [
-              {
-                "name": "movie",
-                "type": "String"
-              },
-              {
-                "name": "title",
-                "type": "String"
-              },
-              {
-                "name": "genres",
-                "type": "String"
-              },
-              {
-                "name": "year",
-                "type": "String"
-              },
-              {
-                "name": "Rating",
-                "type": "String"
-              },
-              {
-                "name": "Rotton Tomato",
-                "type": "String"
-              },
-              {
-                "name": "Address",
-                "type": "String"
-              }
-            ]
-          },
-          "dependsOn": [
-            "[variables('dataFactoryName')]",
-            "[concat(variables('factoryId'), '/linkedServices/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Blob')]"
-          ]
-        },
-        { // create dataset adl loading source 
-          "name": "[concat(variables('dataFactoryName'), '/DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LoadingSource')]",
-          "type": "Microsoft.DataFactory/factories/datasets",
-          "apiVersion": "2018-06-01",
-
-          "properties": {
-            "linkedServiceName": {
-              "referenceName": "[concat('LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Adl')]",
-              "type": "LinkedServiceReference"
-            },
-            "folder": {
-              "name": "Loading"
+              "name": "General"
             },
             "annotations": [],
             "type": "DelimitedText",
             "typeProperties": {
               "location": {
                 "type": "AzureBlobFSLocation",
-                "fileSystem": "movie-in"
+                "fileName": {
+                  "value": "@dataset().FileName",
+                  "type": "Expression"
+                },
+                "fileSystem": {
+                  "value": "@concat(dataset().Speccode,'-staging')",
+                  "type": "Expression"
+                }
               },
               "columnDelimiter": ",",
               "escapeChar": "\\",
@@ -1098,10 +677,414 @@
           },
           "dependsOn": [
             "[variables('dataFactoryName')]",
-            "[concat(variables('factoryId'), '/linkedServices/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Adl')]"
+            "[concat(variables('factoryId'), '/linkedServices/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LS_ADLS')]"
           ]
         },
-        { // create movie loading pipeline
+        { // create Dataset DS_ASQL
+          "name": "[concat(variables('dataFactoryName'), '/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1), 'DS_ASQL')]",
+          "type": "Microsoft.DataFactory/factories/datasets",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "[concat('LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LS_ASQL')]",
+              "type": "LinkedServiceReference"
+            },
+            "parameters": {
+              "TableName": {
+                "type": "string"
+              },
+              "SchemaName": {
+                "type": "string"
+              }
+            },
+            "folder": {
+              "name": "General"
+            },
+            "annotations": [],
+            "type": "AzureSqlTable",
+            "schema": [],
+            "typeProperties": {
+              "schema": {
+                "value": "@dataset().SchemaName",
+                "type": "Expression"
+              },
+              "table": {
+                "value": "@dataset().TableName",
+                "type": "Expression"
+              }
+            }
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/linkedServices/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LS_ASQL')]"
+          ]
+        },
+        { // create Dataset DS_ABLB
+          "name": "[concat(variables('dataFactoryName'), '/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'DS_ABLB')]",
+          "type": "Microsoft.DataFactory/factories/datasets",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "[concat('LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LS_ABLB_IN')]",
+              "type": "LinkedServiceReference"
+            },
+            "parameters": {
+              "speccode": {
+                "type": "string"
+              }
+            },
+            "folder": {
+              "name": "Loading"
+            },
+            "annotations": [],
+            "type": "DelimitedText",
+            "typeProperties": {
+              "location": {
+                "type": "AzureBlobStorageLocation",
+                "container": {
+                  "value": "@concat(dataset().speccode,'-in')",
+                  "type": "Expression"
+                }
+              },
+              "columnDelimiter": ",",
+              "escapeChar": "\\",
+              "firstRowAsHeader": true,
+              "quoteChar": "\""
+            },
+            "schema": [
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              }
+            ]
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/linkedServices/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LS_ABLB_IN')]"
+          ]
+        },
+        { // create Dataset DS_ABLB_IN
+          "name": "[concat(variables('dataFactoryName'), '/Dataset',toUpper(first(parameters('projectShort'))),skip(parameters('projectShort'), 1), 'DS_ABLB_IN')]",
+          "type": "Microsoft.DataFactory/factories/datasets",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "[concat('LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LS_ABLB_IN')]",
+              "type": "LinkedServiceReference"
+            },
+            "parameters": {
+              "FileName": {
+                "type": "string"
+              },
+              "speccode": {
+                "type": "string"
+              }
+            },
+            "folder": {
+              "name": "Loading"
+            },
+            "annotations": [],
+            "type": "DelimitedText",
+            "typeProperties": {
+              "location": {
+                "type": "AzureBlobStorageLocation",
+                "fileName": {
+                  "value": "@dataset().FileName",
+                  "type": "Expression"
+                },
+                "container": {
+                  "value": "@concat(dataset().speccode,'-in')",
+                  "type": "Expression"
+                }
+              },
+              "columnDelimiter": ",",
+              "escapeChar": "\\",
+              "firstRowAsHeader": true,
+              "quoteChar": "\""
+            },
+            "schema": [
+              {
+                "name": "movie",
+                "type": "String"
+              },
+              {
+                "name": "title",
+                "type": "String"
+              },
+              {
+                "name": "genres",
+                "type": "String"
+              },
+              {
+                "name": "year",
+                "type": "String"
+              },
+              {
+                "name": "Rating",
+                "type": "String"
+              },
+              {
+                "name": "Rotton Tomato",
+                "type": "String"
+              },
+              {
+                "name": "Address",
+                "type": "String"
+              }
+            ]
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/linkedServices/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LS_ABLB_IN')]"
+          ]
+        },
+        { // create Dataset DS_ADLS
+          "name": "[concat(variables('dataFactoryName'), '/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1), 'DS_ADLS')]",
+          "type": "Microsoft.DataFactory/factories/datasets",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "[concat('LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LS_ADLS')]",
+              "type": "LinkedServiceReference"
+            },
+            "parameters": {
+              "Speccode": {
+                "type": "string"
+              },
+              "FileName": {
+                "type": "string"
+              }
+            },
+            "folder": {
+              "name": "Transforming"
+            },
+            "annotations": [],
+            "type": "DelimitedText",
+            "typeProperties": {
+              "location": {
+                "type": "AzureBlobFSLocation",
+                "fileName": {
+                  "value": "@dataset().FileName",
+                  "type": "Expression"
+                },
+                "fileSystem": {
+                  "value": "@dataset().Speccode",
+                  "type": "Expression"
+                }
+              },
+              "columnDelimiter": ",",
+              "escapeChar": "\\",
+              "firstRowAsHeader": true,
+              "quoteChar": "\""
+            },
+            "schema": []
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/linkedServices/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LS_ADLS')]"
+          ]
+        },
+        { // create Dataset DS_ADLS_SINK
+          "name": "[concat(variables('dataFactoryName'), '/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1), 'DS_ADLS_SINK')]",
+          "type": "Microsoft.DataFactory/factories/datasets",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "[concat('LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LS_ADLS')]",
+              "type": "LinkedServiceReference"
+            },
+            "parameters": {
+              "Speccode": {
+                "type": "string"
+              }
+            },
+            "folder": {
+              "name": "Transforming"
+            },
+            "annotations": [],
+            "type": "DelimitedText",
+            "typeProperties": {
+              "location": {
+                "type": "AzureBlobFSLocation",
+                "fileSystem": {
+                  "value": "@dataset().Speccode",
+                  "type": "Expression"
+                }
+              },
+              "columnDelimiter": ",",
+              "escapeChar": "\\",
+              "firstRowAsHeader": true,
+              "quoteChar": "\""
+            },
+            "schema": []
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/linkedServices/LinkedSvc',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LS_ADLS')]"
+          ]
+        },
+        { // create Pipeline ELT
+          "name": "[concat(variables('dataFactoryName'), '/ELT')]",
+          "type": "Microsoft.DataFactory/factories/pipelines",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "activities": [
+              {
+                "name": "Execute Pipeline - Loading",
+                "type": "ExecutePipeline",
+                "dependsOn": [],
+                "userProperties": [],
+                "typeProperties": {
+                  "pipeline": {
+                    "referenceName": "Loading",
+                    "type": "PipelineReference"
+                  },
+                  "waitOnCompletion": true,
+                  "parameters": {
+                    "specdode": {
+                      "value": "@pipeline().parameters.speccode",
+                      "type": "Expression"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "Execute Pipeline - Transforming",
+                "type": "ExecutePipeline",
+                "dependsOn": [
+                  {
+                    "activity": "Execute Pipeline - Loading",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                  "pipeline": {
+                    "referenceName": "MovieTransformation",
+                    "type": "PipelineReference"
+                  },
+                  "waitOnCompletion": true,
+                  "parameters": {
+                    "Speccode": {
+                      "value": "@pipeline().parameters.speccode",
+                      "type": "Expression"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "Copy Data to ASQL",
+                "type": "Copy",
+                "dependsOn": [
+                  {
+                    "activity": "Execute Pipeline - Transforming",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "source": {
+                    "type": "DelimitedTextSource",
+                    "storeSettings": {
+                      "type": "AzureBlobFSReadSettings",
+                      "recursive": true,
+                      "enablePartitionDiscovery": false
+                    },
+                    "formatSettings": {
+                      "type": "DelimitedTextReadSettings"
+                    }
+                  },
+                  "sink": {
+                    "type": "AzureSqlSink",
+                    "tableOption": "autoCreate",
+                    "disableMetricsCollection": false
+                  },
+                  "enableStaging": false,
+                  "translator": {
+                    "type": "TabularTranslator",
+                    "typeConversion": true,
+                    "typeConversionSettings": {
+                      "allowDataTruncation": true,
+                      "treatBooleanAsNumber": false
+                    }
+                  }
+                },
+                "inputs": [
+                  {
+                    "referenceName": "[concat('Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1), 'DS_ADLS')]",
+                    "type": "DatasetReference",
+                    "parameters": {
+                      "Speccode": {
+                        "value": "@pipeline().parameters.speccode",
+                        "type": "Expression"
+                      },
+                      "FileName": {
+                        "value": "@pipeline().parameters.FileName",
+                        "type": "Expression"
+                      }
+                    }
+                  }
+                ],
+                "outputs": [
+                  {
+                    "referenceName": "[concat('Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1), 'DS_ASQL')]",
+                    "type": "DatasetReference",
+                    "parameters": {
+                      "TableName": {
+                        "value": "@replace(pipeline().parameters.FileName,'.csv','')",
+                        "type": "Expression"
+                      },
+                      "SchemaName": {
+                        "value": "@pipeline().parameters.Schema",
+                        "type": "Expression"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "parameters": {
+              "speccode": {
+                "type": "string",
+                "defaultValue": "movie"
+              },
+              "FileName": {
+                "type": "string",
+                "defaultValue": "RatedMovie.csv"
+              },
+              "Schema": {
+                "type": "string",
+                "defaultValue": "dbo"
+              }
+            },
+            "annotations": [],
+            "lastPublishTime": "2021-08-12T17:06:06Z"
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/datasets/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'DS_ASQL')]",
+            "[concat(variables('factoryId'), '/datasets/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'DS_ADLS')]",
+            "[concat(variables('factoryId'), '/pipelines/Loading')]",
+            "[concat(variables('factoryId'), '/pipelines/MovieTransformation')]"
+          ]
+        },
+        { // create Pipeline Loading/Loading
           "name": "[concat(variables('dataFactoryName'), '/Loading')]",
           "type": "Microsoft.DataFactory/factories/pipelines",
           "apiVersion": "2018-06-01",
@@ -1121,8 +1104,14 @@
                 "userProperties": [],
                 "typeProperties": {
                   "dataset": {
-                    "referenceName": "[concat('Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'BlobLoadingSrc')]",
-                    "type": "DatasetReference"
+                    "referenceName": "[concat('Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1), 'DS_ABLB')]",
+                    "type": "DatasetReference",
+                    "parameters": {
+                      "speccode": {
+                        "value": "@pipeline().parameters.specdode",
+                        "type": "Expression"
+                      }
+                    }
                   },
                   "fieldList": [
                     "childItems",
@@ -1204,92 +1193,6 @@
                         "enableStaging": false,
                         "translator": {
                           "type": "TabularTranslator",
-                          "mappings": [
-                            {
-                              "source": {
-                                "name": "movie",
-                                "type": "String",
-                                "physicalType": "String"
-                              },
-                              "sink": {
-                                "name": "movie",
-                                "type": "String",
-                                "physicalType": "String"
-                              }
-                            },
-                            {
-                              "source": {
-                                "name": "title",
-                                "type": "String",
-                                "physicalType": "String"
-                              },
-                              "sink": {
-                                "name": "title",
-                                "type": "String",
-                                "physicalType": "String"
-                              }
-                            },
-                            {
-                              "source": {
-                                "name": "genres",
-                                "type": "String",
-                                "physicalType": "String"
-                              },
-                              "sink": {
-                                "name": "genres",
-                                "type": "String",
-                                "physicalType": "String"
-                              }
-                            },
-                            {
-                              "source": {
-                                "name": "year",
-                                "type": "String",
-                                "physicalType": "String"
-                              },
-                              "sink": {
-                                "name": "year",
-                                "type": "String",
-                                "physicalType": "String"
-                              }
-                            },
-                            {
-                              "source": {
-                                "name": "Rating",
-                                "type": "String",
-                                "physicalType": "String"
-                              },
-                              "sink": {
-                                "name": "Rating",
-                                "type": "String",
-                                "physicalType": "String"
-                              }
-                            },
-                            {
-                              "source": {
-                                "name": "Rotton Tomato",
-                                "type": "String",
-                                "physicalType": "String"
-                              },
-                              "sink": {
-                                "name": "Rotton Tomato",
-                                "type": "String",
-                                "physicalType": "String"
-                              }
-                            },
-                            {
-                              "source": {
-                                "name": "Address",
-                                "type": "String",
-                                "physicalType": "String"
-                              },
-                              "sink": {
-                                "name": "Address",
-                                "type": "String",
-                                "physicalType": "String"
-                              }
-                            }
-                          ],
                           "typeConversion": true,
                           "typeConversionSettings": {
                             "allowDataTruncation": true,
@@ -1299,14 +1202,34 @@
                       },
                       "inputs": [
                         {
-                          "referenceName": "[concat('Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Blob')]",
-                          "type": "DatasetReference"
+                          "referenceName": "[concat('Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1), 'DS_ABLB_IN')]",
+                          "type": "DatasetReference",
+                          "parameters": {
+                            "FileName": {
+                              "value": "@item().name",
+                              "type": "Expression"
+                            },
+                            "speccode": {
+                              "value": "@pipeline().parameters.specdode",
+                              "type": "Expression"
+                            }
+                          }
                         }
                       ],
                       "outputs": [
                         {
-                          "referenceName": "[concat('DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LoadingSource')]",
-                          "type": "DatasetReference"
+                          "referenceName": "[concat('Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1), 'DS_ADLS_STAGING')]",
+                          "type": "DatasetReference",
+                          "parameters": {
+                            "FileName": {
+                              "value": "@item().name",
+                              "type": "Expression"
+                            },
+                            "Speccode": {
+                              "value": "@pipeline().parameters.specdode",
+                              "type": "Expression"
+                            }
+                          }
                         }
                       ]
                     }
@@ -1314,21 +1237,27 @@
                 }
               }
             ],
+            "parameters": {
+              "specdode": {
+                "type": "string",
+                "defaultValue": "movie"
+              }
+            },
             "folder": {
-              "name": "MovieELT/Loading"
+              "name": "Loading"
             },
             "annotations": [],
-            "lastPublishTime": "2021-05-15T01:05:16Z"
+            "lastPublishTime": "2021-08-12T17:06:05Z"
           },
           "dependsOn": [
             "[variables('dataFactoryName')]",
-            "[concat(variables('factoryId'), '/datasets/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'BlobLoadingSrc')]",
-            "[concat(variables('factoryId'), '/datasets/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Blob')]",
-            "[concat(variables('factoryId'), '/datasets/DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LoadingSource')]"
+            "[concat(variables('factoryId'), '/datasets/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'DS_ABLB_IN')]",
+            "[concat(variables('factoryId'), '/datasets/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'DS_ABLB')]",
+            "[concat(variables('factoryId'), '/datasets/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'DS_ADLS_STAGING')]"
           ]
         },
-        {
-          "name": "[concat(variables('dataFactoryName'), '/Transformation')]",
+        { // create Pipeline Transforming/MovieTransofrmation
+          "name": "[concat(variables('dataFactoryName'), '/MovieTransformation')]",
           "type": "Microsoft.DataFactory/factories/pipelines",
           "apiVersion": "2018-06-01",
           "properties": {
@@ -1338,7 +1267,7 @@
                 "type": "ExecuteDataFlow",
                 "dependsOn": [],
                 "policy": {
-                  "timeout": "7.00:00:00",
+                  "timeout": "1.00:00:00",
                   "retry": 0,
                   "retryIntervalInSeconds": 30,
                   "secureOutput": false,
@@ -1347,8 +1276,42 @@
                 "userProperties": [],
                 "typeProperties": {
                   "dataflow": {
-                    "referenceName": "MovieETL",
-                    "type": "DataFlowReference"
+                    "referenceName": "TransformationDemo",
+                    "type": "DataFlowReference",
+                    "parameters": {
+                      "FileName": {
+                        "value": "'@{pipeline().parameters.FileName}'",
+                        "type": "Expression"
+                      },
+                      "Speccode": {
+                        "value": "'@{pipeline().parameters.Speccode}'",
+                        "type": "Expression"
+                      }
+                    },
+                    "datasetParameters": {
+                      "MovieDB": {
+                        "FileName": {
+                          "value": "@pipeline().parameters.FileName",
+                          "type": "Expression"
+                        },
+                        "Speccode": {
+                          "value": "@pipeline().parameters.Speccode",
+                          "type": "Expression"
+                        }
+                      },
+                      "MoviesSink": {
+                        "Speccode": {
+                          "value": "@pipeline().parameters.Speccode",
+                          "type": "Expression"
+                        }
+                      },
+                      "AllData": {
+                        "Speccode": {
+                          "value": "@pipeline().parameters.Speccode",
+                          "type": "Expression"
+                        }
+                      }
+                    }
                   },
                   "compute": {
                     "coreCount": 8,
@@ -1358,32 +1321,38 @@
                 }
               }
             ],
+            "parameters": {
+              "FileName": {
+                "type": "string",
+                "defaultValue": "moviesDB.csv"
+              },
+              "Speccode": {
+                "type": "string",
+                "defaultValue": "movie"
+              }
+            },
             "folder": {
-              "name": "MovieELT/Transforming"
+              "name": "Transforming"
             },
             "annotations": [],
-            "lastPublishTime": "2021-05-15T00:16:40Z"
+            "lastPublishTime": "2021-08-12T17:06:05Z"
           },
           "dependsOn": [
             "[variables('dataFactoryName')]",
-            "[concat(variables('factoryId'), '/datasets/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'BlobLoadingSrc')]",
-            "[concat(variables('factoryId'), '/dataflows/MovieETL')]"
+            "[concat(variables('factoryId'), '/dataflows/TransformationDemo')]"
           ]
         },
-        {
-          "name": "[concat(variables('dataFactoryName'), '/MovieETL')]",
-          "apiVersion": "2018-06-01",
+        { // create Dataflow Transformation
+          "name": "[concat(variables('dataFactoryName'), '/TransformationDemo')]",
           "type": "Microsoft.DataFactory/factories/dataflows",
+          "apiVersion": "2018-06-01",
           "properties": {
-            "folder": {
-              "name": "Movie"
-            },
             "type": "MappingDataFlow",
             "typeProperties": {
               "sources": [
                 {
                   "dataset": {
-                    "referenceName": "[concat('DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LoadingSource')]",
+                    "referenceName": "[concat('Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1), 'DS_ADLS_STAGING')]",
                     "type": "DatasetReference"
                   },
                   "name": "MovieDB"
@@ -1392,14 +1361,15 @@
               "sinks": [
                 {
                   "dataset": {
-                    "referenceName": "[concat('DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Sink')]",
+                    "referenceName": "[concat('Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1), 'DS_ADLS_SINK')]",
                     "type": "DatasetReference"
                   },
                   "name": "MoviesSink"
                 },
                 {
                   "dataset": {
-                    "referenceName": "[concat('DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Sink')]",
+
+                    "referenceName": "[concat('Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1), 'DS_ADLS_SINK')]",
                     "type": "DatasetReference"
                   },
                   "name": "AllData"
@@ -1419,171 +1389,13 @@
                   "name": "DerivedColumnAll"
                 }
               ],
-              "script": "source(output(\n\t\tmovie as string,\n\t\ttitle as string,\n\t\tgenres as string,\n\t\tyear as string,\n\t\tRating as string,\n\t\t{Rotton Tomato} as string,\n\t\tProp_6 as string,\n\t\tAddress as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\twildcardPaths:[('moviesDB.txt')]) ~> MovieDB\nMovieDB filter(toInteger(year) >= 1910 && toInteger(year) <= 2000 && rlike(genres, 'Comedy')) ~> FilterYear\nDerivedColumnAll aggregate(groupBy(year),\n\tAverageComedyRating = avg(toInteger(Rating))) ~> AggregateComedyRatings\nFilterYear derive(AllAddress = regexReplace(regexReplace(Address,'[\\n]',','),'[\\r]',',')) ~> DerivedColumnAddress\nDerivedColumnAddress derive({Address 1} = split({AllAddress},',')[1],\n\t\t{Address 2} = split({AllAddress},',')[2],\n\t\t{Address 3} = split({AllAddress},',')[3],\n\t\t{Address 4} = split({AllAddress},',')[4]) ~> DerivedColumnAll\nAggregateComedyRatings sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['RatedMovie'],\n\tumask: 0022,\n\tpartitionBy('hash', 1)) ~> MoviesSink\nDerivedColumnAll sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['MovieWithMoreInfo'],\n\tumask: 0022,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> AllData"
+              "script": "parameters{\n\tFileName as string,\n\tSpeccode as string\n}\nsource(output(\n\t\tmovie as string,\n\t\ttitle as string,\n\t\tgenres as string,\n\t\tyear as string,\n\t\tRating as string,\n\t\t{Rotton Tomato} as string,\n\t\tProp_6 as string,\n\t\tAddress as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\twildcardPaths:[($FileName)]) ~> MovieDB\nMovieDB filter(toInteger(year) >= 1900 && toInteger(year) <= 2000) ~> FilterYear\nDerivedColumnAll aggregate(groupBy(year),\n\tAverageComedyRating = avg(toInteger(Rating))) ~> AggregateComedyRatings\nFilterYear derive(AllAddress = regexReplace(regexReplace(Address,'[\\n]',','),'[\\r]',',')) ~> DerivedColumnAddress\nDerivedColumnAddress derive({Address 1} = split({AllAddress},',')[1],\n\t\t{Address 2} = split({AllAddress},',')[2],\n\t\t{Address 3} = split({AllAddress},',')[3],\n\t\t{Address 4} = split({AllAddress},',')[4]) ~> DerivedColumnAll\nAggregateComedyRatings sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['RatedMovie.csv'],\n\tumask: 0022,\n\tpartitionBy('hash', 1)) ~> MoviesSink\nDerivedColumnAll sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['Movie.csv'],\n\tumask: 0022,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> AllData"
             }
           },
           "dependsOn": [
             "[variables('dataFactoryName')]",
-            "[concat(variables('factoryId'), '/datasets/DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Sink')]",
-            "[concat(variables('factoryId'), '/datasets/DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'LoadingSource')]"
-          ]
-        },
-        {
-          "name": "[concat(variables('dataFactoryName'), '/SoccerELT')]",
-          "type": "Microsoft.DataFactory/factories/pipelines",
-          "apiVersion": "2018-06-01",
-          "properties": {
-            "activities": [
-              {
-                "name": "soccerETL",
-                "type": "ExecuteDataFlow",
-                "dependsOn": [
-                  {
-                    "activity": "Copy data",
-                    "dependencyConditions": [
-                      "Succeeded"
-                    ]
-                  }
-                ],
-                "policy": {
-                  "timeout": "1.00:00:00",
-                  "retry": 0,
-                  "retryIntervalInSeconds": 30,
-                  "secureOutput": false,
-                  "secureInput": false
-                },
-                "userProperties": [],
-                "typeProperties": {
-                  "dataflow": {
-                    "referenceName": "soccerETL",
-                    "type": "DataFlowReference"
-                  },
-                  "compute": {
-                    "coreCount": 8,
-                    "computeType": "General"
-                  },
-                  "traceLevel": "Fine"
-                }
-              },
-              {
-                "name": "Copy data",
-                "type": "Copy",
-                "dependsOn": [],
-                "policy": {
-                  "timeout": "7.00:00:00",
-                  "retry": 0,
-                  "retryIntervalInSeconds": 30,
-                  "secureOutput": false,
-                  "secureInput": false
-                },
-                "userProperties": [],
-                "typeProperties": {
-                  "source": {
-                    "type": "DelimitedTextSource",
-                    "storeSettings": {
-                      "type": "AzureBlobFSReadSettings",
-                      "recursive": true,
-                      "wildcardFileName": "*.csv",
-                      "enablePartitionDiscovery": false
-                    },
-                    "formatSettings": {
-                      "type": "DelimitedTextReadSettings"
-                    }
-                  },
-                  "sink": {
-                    "type": "DelimitedTextSink",
-                    "storeSettings": {
-                      "type": "AzureBlobFSWriteSettings"
-                    },
-                    "formatSettings": {
-                      "type": "DelimitedTextWriteSettings",
-                      "quoteAllText": true,
-                      "fileExtension": ".txt"
-                    }
-                  },
-                  "enableStaging": false,
-                  "translator": {
-                    "type": "TabularTranslator",
-                    "typeConversion": true,
-                    "typeConversionSettings": {
-                      "allowDataTruncation": true,
-                      "treatBooleanAsNumber": false
-                    }
-                  }
-                },
-                "inputs": [
-                  {
-                    "referenceName": "[concat('DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Extra')]",
-                    "type": "DatasetReference"
-                  }
-                ],
-                "outputs": [
-                  {
-                    "referenceName": "[concat('DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Extra')]",
-                    "type": "DatasetReference"
-                  }
-                ]
-              }
-            ],
-            "folder": {
-              "name": "SoccerELT"
-            },
-            "annotations": [],
-            "lastPublishTime": "2021-06-08T13:58:59Z"
-          },
-          "dependsOn": [
-            "[variables('dataFactoryName')]",
-            "[concat(variables('factoryId'), '/datasets/DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Extra')]",
-            "[concat(variables('factoryId'), '/dataflows/soccerETL')]"
-          ]
-        },
-        {
-
-          "name": "[concat(variables('dataFactoryName'), '/soccerETL')]",
-          "apiVersion": "2018-06-01",
-          "type": "Microsoft.DataFactory/factories/dataflows",
-          "properties": {
-            "folder": {
-              "name": "Soccer"
-            },
-            "type": "MappingDataFlow",
-            "typeProperties": {
-              "sources": [
-                {
-                  "dataset": {
-                    "referenceName": "[concat('DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Source')]",
-                    "type": "DatasetReference"
-                  },
-                  "name": "specifySchemaExtracts"
-                }
-              ],
-              "sinks": [
-                {
-                  "dataset": {
-                    "referenceName": "[concat('DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Sink')]",
-                    "type": "DatasetReference"
-                  },
-                  "name": "SQLDBSink"
-                }
-              ],
-              "transformations": [
-                {
-                  "name": "dictionaryMapping"
-                },
-                {
-                  "name": "columnSelectorRenaming"
-                },
-                {
-                  "name": "timeBins"
-                }
-              ],
-              "script": "source(output(\n\t\tid_odsp as string,\n\t\tid_event as string,\n\t\tsort_order as string,\n\t\ttime as string,\n\t\ttext as string,\n\t\tevent_type as integer,\n\t\tevent_type2 as string,\n\t\tside as string,\n\t\tevent_team as string,\n\t\topponent as string,\n\t\tplayer as string,\n\t\tplayer2 as string,\n\t\tplayer_in as string,\n\t\tplayer_out as string,\n\t\tshot_place as string,\n\t\tshot_outcome as string,\n\t\tis_goal as string,\n\t\tlocation as string,\n\t\tbodypart as string,\n\t\tassist_method as string,\n\t\tsituation as string,\n\t\tfast_break as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> specifySchemaExtracts\nspecifySchemaExtracts derive(eventTypeMap = case(\r\n    event_type == 0,'Announcement',\r\n    event_type == 1,'Attempt',\r\n    event_type == 2,'Corner',\r\n    event_type == 3,'Foul',\r\n    event_type == 4,'Yellow Card',\r\n    event_type == 5,'Second yellow card',\r\n    event_type == 6,'Red card',\r\n    event_type == 7,'Substitution',\r\n    event_type == 8,'Free kick won',\r\n    event_type == 9,'Offside',\r\n    event_type == 10,'Hand ball',\r\n    event_type == 11,'Penalty conceded',\r\n    event_type == 98, 'NA'\r\n),\n\t\tdummy = 1,\n\t\ttext = iif(text=='',toString(null()),text)) ~> dictionaryMapping\ndictionaryMapping select(mapColumn(\n\t\tid_odsp,\n\t\tid_event,\n\t\tsort_order,\n\t\ttext,\n\t\tevent_type,\n\t\tevent_type2,\n\t\tside,\n\t\tevent_team,\n\t\topponent,\n\t\tplayer,\n\t\tplayer2,\n\t\tplayer_in,\n\t\tplayer_out,\n\t\tshot_place,\n\t\tshot_outcome,\n\t\tis_goal,\n\t\tlocation,\n\t\tbodypart,\n\t\tassist_method,\n\t\tsituation,\n\t\tfast_break,\n\t\tdummy,\n\t\ttime\n\t),\n\tpartitionBy('hash', 200,\n\t\tid_event\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> columnSelectorRenaming\ncolumnSelectorRenaming window(over(time),\n\tdesc(sort_order, true),\n\tTimeBins = nTile(10)) ~> timeBins\ntimeBins sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tid_odsp as string,\n\t\tid_event as string,\n\t\tsort_order as integer,\n\t\ttime as integer,\n\t\tevent_type as integer,\n\t\tevent_type_str as string,\n\t\tevent_type2 as integer\n\t),\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tbatchSize: 2000,\n\terrorHandlingOption: 'stopOnFirstError',\n\tpartitionBy('roundRobin', 40)) ~> SQLDBSink"
-            }
-          },
-          "dependsOn": [
-            "[variables('dataFactoryName')]",
-            "[concat(variables('factoryId'), '/datasets/DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Source')]",
-            "[concat(variables('factoryId'), '/datasets/DatasetAdl',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'Sink')]" 
+            "[concat(variables('factoryId'), '/datasets/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'DS_ADLS_STAGING')]",
+            "[concat(variables('factoryId'), '/datasets/Dataset',toUpper(first(parameters('projectShort'))), skip(parameters('projectShort'), 1),'DS_ADLS_SINK')]"
           ]
         }
       ]
